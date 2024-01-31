@@ -15,12 +15,18 @@ jobs:
   integration:
     name: Continuous Integration
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20]
+
     steps:
-     
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
       - name: Checkout Code
         uses: actions/checkout@v3
-        with:
-          node-version: '20'
 
       - name: Lint code
         run: echo "Linting repository"
@@ -32,11 +38,18 @@ jobs:
     name: Continuous Delivery
     needs: integration
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20]
+
     steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
       - name: Checkout Code
         uses: actions/checkout@v3
-        with:
-          node-version: '20'
 
       - name: Install Utilities
         run: |
@@ -69,13 +82,21 @@ jobs:
           
           
   Continuous-Deployment:
+    name: Continuous Deployment
     needs: build-and-push-ecr-image
     runs-on: self-hosted
+    strategy:
+      matrix:
+        node-version: [20]
+
     steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          node-version: '20'
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -87,8 +108,7 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-      
-      
+
       - name: Pull latest images
         run: |
          docker pull ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
